@@ -1,0 +1,32 @@
+# Узлы и зависимости
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Сборка и логи
+dist/
+build/
+*.log
+
+# Переменные окружения
+.env
+.env.test
+.env.production
+
+# Базы данных
+*.db
+*.sqlite
+
+# IDE и редакторы
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+migration_backlog.md
+api/dist/
+api/node_modules/
+cms-frontend/dist/
+cms-frontend/node_modules/
