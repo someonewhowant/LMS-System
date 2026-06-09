@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "cms-frontend": {
+    "client": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "cms-frontend:build:production"
+              "buildTarget": "client:build:production"
             },
             "development": {
-              "buildTarget": "cms-frontend:build:development"
+              "buildTarget": "client:build:development"
             }
           },
           "defaultConfiguration": "development"

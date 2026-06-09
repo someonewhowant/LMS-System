@@ -1,0 +1,78 @@
+<div class="post-detail-container">
+  <div class="navigation-header animate-fade-in">
+    <button mat-button color="primary" routerLink="/blog" class="back-btn">
+      <mat-icon>arrow_back</mat-icon> Назад к списку статей
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Загрузка содержимого статьи...</p>
+    </div>
+  } @else {
+    @if (post(); as p) {
+      <article class="post-article glassmorphism animate-slide-up">
+        <!-- Cover Section -->
+        <header class="article-cover">
+          <div class="cover-gradient cover-style-{{ p.id % 5 }}"></div>
+          
+          <div class="cover-content">
+            <div class="badges">
+              @if (p.category) {
+                <span class="category-badge">{{ p.category.name }}</span>
+              }
+              @if (!p.published) {
+                <span class="status-badge draft">Черновик</span>
+              }
+            </div>
+            <h1 class="article-title">{{ p.title }}</h1>
+            
+            <div class="article-meta">
+              <div class="meta-item">
+                <mat-icon>account_circle</mat-icon>
+                <span>{{ p.author.name || p.author.email }}</span>
+                <span class="role-badge">{{ p.author.role }}</span>
+              </div>
+              <span class="meta-dot">•</span>
+              <div class="meta-item">
+                <mat-icon>calendar_today</mat-icon>
+                <span>{{ p.createdAt | date:'dd MMMM yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Summary -->
+        @if (p.summary) {
+          <section class="article-summary-box">
+            <p>{{ p.summary }}</p>
+          </section>
+        }
+
+        <!-- Content -->
+        <section class="article-content" [innerHTML]="p.content | markdown"></section>
+
+        <!-- Tags & Actions Footer -->
+        <footer class="article-footer">
+          <div class="article-tags">
+            @for (tag of p.tags; track tag.id) {
+              <span class="tag-chip">#{{ tag.name }}</span>
+            }
+          </div>
+
+          @if (canEdit()) {
+            <div class="admin-actions">
+              <button mat-flat-button color="accent" [routerLink]="['/blog/edit', p.id]">
+                <mat-icon>edit</mat-icon> Редактировать
+              </button>
+              <button mat-flat-button color="warn" (click)="deletePost()">
+                <mat-icon>delete</mat-icon> Удалить
+              </button>
+            </div>
+          }
+        </footer>
+      </article>
+    }
+  }
+</div>

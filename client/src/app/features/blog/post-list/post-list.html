@@ -1,0 +1,163 @@
+<div class="blog-container">
+  <!-- Hero Section -->
+  <header class="blog-hero">
+    <div class="hero-content animate-fade-in">
+      <h1>Блог & Новости</h1>
+      <p>Свежие статьи, обновления и образовательные материалы от наших преподавателей.</p>
+    </div>
+    <div class="hero-glow"></div>
+  </header>
+
+  <!-- Filter and Search Bar -->
+  <section class="filter-bar glassmorphism">
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+        placeholder="Поиск статей..."
+        class="search-input"
+      />
+      <button mat-button class="search-btn" (click)="onSearch()">Найти</button>
+    </div>
+
+    <div class="filter-selects">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Категория</mat-label>
+        <mat-select [value]="selectedCategory()" (selectionChange)="onCategoryChange($event.value)">
+          <mat-option value="">Все категории</mat-option>
+          @for (cat of categories(); track cat.id) {
+            <mat-option [value](cat.slug) [value]="cat.slug">{{ cat.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Тег</mat-label>
+        <mat-select [value]="selectedTag()" (selectionChange)="onTagChange($event.value)">
+          <mat-option value="">Все теги</mat-option>
+          @for (t of tags(); track t.id) {
+            <mat-option [value]="t.slug">#{{ t.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (selectedCategory() || selectedTag() || searchQuery()) {
+        <button mat-stroked-button class="clear-btn" (click)="clearFilters()">
+          <mat-icon>clear_all</mat-icon> Сбросить
+        </button>
+      }
+
+      @if (authService.hasRole('ADMIN') || authService.hasRole('TEACHER')) {
+        <button mat-flat-button color="primary" class="create-post-btn" routerLink="/blog/create">
+          <mat-icon>add</mat-icon> Создать статью
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Загрузка публикаций...</p>
+    </div>
+  } @else {
+    <!-- Empty State -->
+    @if (posts().length === 0) {
+      <div class="empty-state glassmorphism animate-fade-in">
+        <mat-icon class="empty-icon">feed</mat-icon>
+        <h2>Статьи не найдены</h2>
+        <p>Попробуйте изменить параметры фильтрации или поиска.</p>
+        <button mat-stroked-button color="primary" (click)="clearFilters()">Показать все</button>
+      </div>
+    } @else {
+      <!-- Posts Grid -->
+      <div class="posts-grid">
+        @for (post of posts(); track post.id) {
+          <mat-card class="post-card glassmorphism-card animate-slide-up" [routerLink]="['/blog', post.slug]">
+            <div class="card-cover">
+              <div class="cover-gradient cover-style-{{ post.id % 5 }}"></div>
+              @if (post.category) {
+                <span class="category-badge">{{ post.category.name }}</span>
+              }
+              @if (!post.published) {
+                <span class="status-badge draft">Черновик</span>
+              }
+            </div>
+
+            <mat-card-content class="card-body">
+              <h2 class="post-title">{{ post.title }}</h2>
+              <p class="post-summary">{{ post.summary || 'Нет описания для этой статьи. Нажмите "Читать", чтобы открыть полное содержимое статьи.' }}</p>
+              
+              <div class="post-tags-list">
+                @for (tag of post.tags; track tag.id) {
+                  <span class="tag-chip">#{{ tag.name }}</span>
+                }
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions class="card-footer" (click)="$event.stopPropagation()">
+              <div class="post-meta">
+                <mat-icon>account_circle</mat-icon>
+                <span class="author-name">{{ post.author.name || post.author.email }}</span>
+                <span class="meta-dot">•</span>
+                <span class="post-date">{{ post.createdAt | date:'dd.MM.yyyy' }}</span>
+              </div>
+
+              <div class="actions-wrapper">
+                <button mat-button color="primary" [routerLink]="['/blog', post.slug]">Читать</button>
+                @if (canEdit(post)) {
+                  <button mat-icon-button color="accent" [routerLink]="['/blog/edit', post.id]" title="Редактировать">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deletePost($event, post.id)" title="Удалить">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                }
+              </div>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination-bar glassmorphism">
+          <button
+            mat-icon-button
+            [disabled]="currentPage() === 1"
+            (click)="onPageChange(currentPage() - 1)"
+            class="page-nav-btn"
+          >
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+
+          <div class="page-numbers">
+            @for (p of [].constructor(totalPages()); track $index) {
+              <button
+                mat-flat-button
+                [color]="currentPage() === ($index + 1) ? 'primary' : ''"
+                [class.active]="currentPage() === ($index + 1)"
+                (click)="onPageChange($index + 1)"
+                class="page-btn"
+              >
+                {{ $index + 1 }}
+              </button>
+            }
+          </div>
+
+          <button
+            mat-icon-button
+            [disabled]="currentPage() === totalPages()"
+            (click)="onPageChange(currentPage() + 1)"
+            class="page-nav-btn"
+          >
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      }
+    }
+  }
+</div>

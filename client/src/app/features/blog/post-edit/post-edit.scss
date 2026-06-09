@@ -1,0 +1,175 @@
+.post-edit-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.navigation-header {
+  margin-bottom: 24px;
+
+  .back-btn {
+    color: #cbd5e1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateX(-4px);
+    }
+  }
+}
+
+.glassmorphism {
+  background: rgba(30, 41, 59, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  padding: 30px;
+}
+
+.edit-card {
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 8px;
+  }
+
+  p {
+    color: #cbd5e1;
+    margin: 0 0 24px;
+    font-size: 0.95rem;
+  }
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .full-width {
+    width: 100%;
+  }
+
+  .row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+
+    .col-half {
+      flex: 1;
+      min-width: 250px;
+    }
+  }
+
+  .editor-field {
+    textarea {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+  }
+
+  .toggle-container {
+    padding: 10px 0;
+    color: #cbd5e1;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 24px;
+
+    button[type="button"] {
+      color: #cbd5e1;
+      border-color: rgba(255, 255, 255, 0.1);
+      height: 48px;
+      padding: 0 24px;
+      border-radius: 10px;
+    }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+      color: #ffffff;
+      height: 48px;
+      padding: 0 28px;
+      font-weight: 600;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        background: #475569;
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+.mini-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+::ng-deep {
+  .mat-mdc-text-field-wrapper {
+    background-color: rgba(15, 23, 42, 0.3) !important;
+  }
+  .mat-mdc-form-field-focus-indicator {
+    background-color: #a855f7 !important;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

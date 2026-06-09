@@ -1,0 +1,109 @@
+<div class="post-edit-container">
+  <div class="navigation-header animate-fade-in">
+    <button mat-button color="primary" routerLink="/blog" class="back-btn">
+      <mat-icon>arrow_back</mat-icon> Отмена и возврат к блогу
+    </button>
+  </div>
+
+  <mat-card class="edit-card glassmorphism animate-slide-up">
+    <mat-card-header>
+      <mat-card-title>
+        <h1>{{ isEditMode() ? 'Редактировать статью' : 'Создать новую статью' }}</h1>
+      </mat-card-title>
+      <mat-card-subtitle>
+        <p>Используйте Markdown в текстовом редакторе для форматирования содержимого.</p>
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="postForm" (ngSubmit)="onSubmit()" class="edit-form">
+        <!-- Title -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Заголовок статьи</mat-label>
+          <input matInput formControlName="title" placeholder="Введите заголовок..." required />
+          @if (postForm.get('title')?.hasError('required')) {
+            <mat-error>Заголовок обязателен</mat-error>
+          }
+          @if (postForm.get('title')?.hasError('minlength')) {
+            <mat-error>Заголовок должен содержать минимум 3 символа</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="row">
+          <!-- Category -->
+          <mat-form-field appearance="outline" class="col-half">
+            <mat-label>Категория</mat-label>
+            <mat-select formControlName="categoryId">
+              <mat-option [value]="null">Без категории</mat-option>
+              @for (cat of categories(); track cat.id) {
+                <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Tags -->
+          <mat-form-field appearance="outline" class="col-half">
+            <mat-label>Теги (через запятую)</mat-label>
+            <input matInput formControlName="tagsString" placeholder="например: NestJS, Angular, SQLite" />
+            <mat-hint>Теги будут разделены автоматически</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <!-- Summary -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Краткое описание (Summary)</mat-label>
+          <textarea
+            matInput
+            formControlName="summary"
+            placeholder="Краткое содержание статьи для списка публикаций..."
+            rows="2"
+          ></textarea>
+        </mat-form-field>
+
+        <!-- Content -->
+        <mat-form-field appearance="outline" class="full-width editor-field">
+          <mat-label>Текст статьи (Markdown)</mat-label>
+          <textarea
+            matInput
+            formControlName="content"
+            placeholder="Пишите текст статьи здесь. Поддерживается Markdown (# заголовок, **жирный**, *курсив*, ```код```)..."
+            rows="12"
+            required
+          ></textarea>
+          @if (postForm.get('content')?.hasError('required')) {
+            <mat-error>Содержимое статьи обязательно</mat-error>
+          }
+          @if (postForm.get('content')?.hasError('minlength')) {
+            <mat-error>Текст статьи должен содержать не менее 10 символов</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Toggle for Published -->
+        <div class="toggle-container">
+          <mat-slide-toggle formControlName="published" color="primary">
+            Опубликовать статью сразу (если выключено, статья сохранится как черновик)
+          </mat-slide-toggle>
+        </div>
+
+        <!-- Submit actions -->
+        <div class="form-actions">
+          <button mat-stroked-button type="button" routerLink="/blog">Отмена</button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="postForm.invalid || isLoading()"
+            class="submit-btn"
+          >
+            @if (isLoading()) {
+              <div class="mini-spinner"></div>
+            } @else {
+              <mat-icon>save</mat-icon>
+            }
+            {{ isEditMode() ? 'Сохранить изменения' : 'Опубликовать' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

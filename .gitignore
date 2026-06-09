@@ -28,5 +28,5 @@ build/
 migration_backlog.md
 api/dist/
 api/node_modules/
-cms-frontend/dist/
-cms-frontend/node_modules/
+client/dist/
+client/node_modules/
