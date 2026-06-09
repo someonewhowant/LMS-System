@@ -18,6 +18,10 @@ export class CreatePostDto {
   published?: boolean;
 
   @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @IsOptional()
   @IsInt()
   categoryId?: number;
 

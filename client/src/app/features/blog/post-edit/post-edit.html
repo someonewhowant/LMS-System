@@ -49,6 +49,36 @@
           </mat-form-field>
         </div>
 
+        <!-- Image Upload Block -->
+        <div class="image-upload-wrapper glassmorphism-subtle">
+          <div class="image-preview-container">
+            @if (postForm.get('imageUrl')?.value) {
+              <img [src]="'http://localhost:3000' + postForm.get('imageUrl')?.value" alt="Обложка" class="image-preview" />
+              <button mat-mini-fab color="warn" class="remove-image-btn" type="button" (click)="postForm.patchValue({ imageUrl: '' })">
+                <mat-icon>delete</mat-icon>
+              </button>
+            } @else {
+              <div class="image-placeholder">
+                <mat-icon>image</mat-icon>
+                <span>Нет обложки (будет использован стандартный градиент)</span>
+              </div>
+            }
+          </div>
+
+          <div class="upload-controls">
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;" />
+            <button mat-stroked-button type="button" [disabled]="isUploading()" (click)="fileInput.click()">
+              @if (isUploading()) {
+                <span class="upload-spinner"></span>
+              } @else {
+                <mat-icon>upload</mat-icon>
+              }
+              Выбрать обложку
+            </button>
+            <mat-hint>Поддерживаются PNG, JPG, WEBP. Максимум 5MB.</mat-hint>
+          </div>
+        </div>
+
         <!-- Summary -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Краткое описание (Summary)</mat-label>

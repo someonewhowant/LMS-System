@@ -15,7 +15,13 @@
       <article class="post-article glassmorphism animate-slide-up">
         <!-- Cover Section -->
         <header class="article-cover">
-          <div class="cover-gradient cover-style-{{ p.id % 5 }}"></div>
+          @if (p.imageUrl) {
+            <div class="cover-image-wrapper">
+              <img [src]="'http://localhost:3000' + p.imageUrl" alt="Обложка" class="cover-image-img" />
+            </div>
+          } @else {
+            <div class="cover-gradient cover-style-{{ p.id % 5 }}"></div>
+          }
           
           <div class="cover-content">
             <div class="badges">

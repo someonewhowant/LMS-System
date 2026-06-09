@@ -41,11 +41,13 @@ export class PostEdit implements OnInit {
   postId = signal<number | null>(null);
   categories = signal<any[]>([]);
   isLoading = signal<boolean>(false);
+  isUploading = signal<boolean>(false);
 
   postForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     content: ['', [Validators.required, Validators.minLength(10)]],
     summary: [''],
+    imageUrl: [''],
     published: [false],
     categoryId: [null as number | null],
     tagsString: [''],
@@ -79,6 +81,7 @@ export class PostEdit implements OnInit {
           title: post.title,
           content: post.content,
           summary: post.summary || '',
+          imageUrl: post.imageUrl || '',
           published: post.published,
           categoryId: post.categoryId || null,
           tagsString: tagsJoined,
@@ -110,6 +113,7 @@ export class PostEdit implements OnInit {
       title: formVal.title,
       content: formVal.content,
       summary: formVal.summary || undefined,
+      imageUrl: formVal.imageUrl || undefined,
       published: formVal.published,
       categoryId: formVal.categoryId || undefined,
       tags,
@@ -142,5 +146,26 @@ export class PostEdit implements OnInit {
         },
       });
     }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.isUploading.set(true);
+
+    this.blogService.uploadImage(file).subscribe({
+      next: (res) => {
+        this.isUploading.set(false);
+        this.postForm.patchValue({ imageUrl: res.url });
+        this.snackBar.open('Изображение успешно загружено!', 'Закрыть', { duration: 3000 });
+      },
+      error: (err) => {
+        this.isUploading.set(false);
+        const msg = err.error?.message || 'Ошибка загрузки изображения';
+        this.snackBar.open(msg, 'Закрыть', { duration: 5000 });
+      },
+    });
   }
 }

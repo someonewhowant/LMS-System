@@ -78,7 +78,11 @@
         @for (post of posts(); track post.id) {
           <mat-card class="post-card glassmorphism-card animate-slide-up" [routerLink]="['/blog', post.slug]">
             <div class="card-cover">
-              <div class="cover-gradient cover-style-{{ post.id % 5 }}"></div>
+              @if (post.imageUrl) {
+                <img [src]="'http://localhost:3000' + post.imageUrl" alt="Обложка" class="cover-image-img" />
+              } @else {
+                <div class="cover-gradient cover-style-{{ post.id % 5 }}"></div>
+              }
               @if (post.category) {
                 <span class="category-badge">{{ post.category.name }}</span>
               }
