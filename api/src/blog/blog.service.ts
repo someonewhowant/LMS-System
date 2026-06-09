@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -7,7 +11,7 @@ import { slugify } from '../common/utils/slugify';
 
 @Injectable()
 export class BlogService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(authorId: number, createPostDto: CreatePostDto) {
     const { tags, categoryId, ...data } = createPostDto;
@@ -48,7 +52,14 @@ export class BlogService {
   }
 
   async findAll(query: GetPostsQueryDto) {
-    const { page = 1, limit = 10, search, category, tag, publishedOnly = true } = query;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      category,
+      tag,
+      publishedOnly = true,
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: any = {};
@@ -129,21 +140,29 @@ export class BlogService {
     return post;
   }
 
-  async update(id: number, updatePostDto: UpdatePostDto, user: { sub: number; role: string }) {
+  async update(
+    id: number,
+    updatePostDto: UpdatePostDto,
+    user: { sub: number; role: string },
+  ) {
     const post = await this.prisma.post.findUnique({ where: { id } });
     if (!post) {
       throw new NotFoundException(`Пост не найден`);
     }
 
     if (user.role === 'TEACHER' && post.authorId !== user.sub) {
-      throw new ForbiddenException('Вы можете редактировать только собственные посты');
+      throw new ForbiddenException(
+        'Вы можете редактировать только собственные посты',
+      );
     }
 
     const { tags, categoryId, ...data } = updatePostDto;
     const updateData: any = { ...data };
 
     if (categoryId !== undefined) {
-      updateData.category = categoryId ? { connect: { id: categoryId } } : { disconnect: true };
+      updateData.category = categoryId
+        ? { connect: { id: categoryId } }
+        : { disconnect: true };
     }
 
     if (tags) {
@@ -176,7 +195,9 @@ export class BlogService {
     }
 
     if (user.role === 'TEACHER' && post.authorId !== user.sub) {
-      throw new ForbiddenException('Вы можете удалять только собственные посты');
+      throw new ForbiddenException(
+        'Вы можете удалять только собственные посты',
+      );
     }
 
     return this.prisma.post.delete({ where: { id } });

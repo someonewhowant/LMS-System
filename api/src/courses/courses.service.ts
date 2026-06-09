@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GetCoursesQueryDto } from './dto/get-courses-query.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
@@ -190,7 +195,10 @@ export class CoursesService {
         return {
           ...quiz,
           isCompleted: quizCompletedMap.has(quiz.id),
-          bestScore: quizResultsMap.get(quiz.id) !== undefined ? quizResultsMap.get(quiz.id) : null,
+          bestScore:
+            quizResultsMap.get(quiz.id) !== undefined
+              ? quizResultsMap.get(quiz.id)
+              : null,
         };
       });
 
@@ -331,7 +339,11 @@ export class CoursesService {
       },
     });
 
-    if (!isEnrolled && user.role !== 'ADMIN' && quiz.module.course.authorId !== userId) {
+    if (
+      !isEnrolled &&
+      user.role !== 'ADMIN' &&
+      quiz.module.course.authorId !== userId
+    ) {
       throw new ForbiddenException('Вы не записаны на этот курс');
     }
 
@@ -358,7 +370,9 @@ export class CoursesService {
 
     const details = quiz.questions.map((q) => {
       const studentAnswer = dto.answers.find((a) => a.questionId === q.id);
-      const correctOptionIds = q.options.filter((o) => o.isCorrect).map((o) => o.id);
+      const correctOptionIds = q.options
+        .filter((o) => o.isCorrect)
+        .map((o) => o.id);
       const selectedOptionIds = studentAnswer?.selectedOptionIds || [];
 
       // Check if student selected exactly all correct options and no incorrect options
@@ -400,7 +414,11 @@ export class CoursesService {
     };
   }
 
-  async toggleLessonProgress(lessonId: number, userId: number, isCompleted: boolean) {
+  async toggleLessonProgress(
+    lessonId: number,
+    userId: number,
+    isCompleted: boolean,
+  ) {
     const lesson = await this.prisma.lesson.findUnique({
       where: { id: lessonId },
       include: {

@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsInt, Min, IsArray, ValidateNested, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  Min,
+  IsArray,
+  ValidateNested,
+  IsBoolean,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateQuestionOptionDto {

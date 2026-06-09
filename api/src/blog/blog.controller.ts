@@ -19,6 +19,7 @@ import { GetPostsQueryDto } from './dto/get-posts-query.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { JwtPayload } from '../auth/decorators/current-user.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -43,7 +44,8 @@ export class BlogController {
           cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
           cb(null, `${uniqueSuffix}${ext}`);
         },
@@ -67,7 +69,7 @@ export class BlogController {
 
   @Post()
   @Roles('ADMIN', 'TEACHER')
-  create(@CurrentUser() user: any, @Body() createPostDto: CreatePostDto) {
+  create(@CurrentUser() user: JwtPayload, @Body() createPostDto: CreatePostDto) {
     return this.blogService.create(user.sub, createPostDto);
   }
 
@@ -106,7 +108,7 @@ export class BlogController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePostDto: UpdatePostDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
   ) {
     return this.blogService.update(id, updatePostDto, user);
   }

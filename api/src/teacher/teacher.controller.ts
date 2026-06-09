@@ -12,7 +12,7 @@ import {
 import { TeacherService } from './teacher.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentUser, JwtPayload } from '../auth/decorators/current-user.decorator';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
@@ -30,31 +30,34 @@ export class TeacherController {
 
   // Courses
   @Post('courses')
-  createCourse(@CurrentUser() user: any, @Body() dto: CreateCourseDto) {
+  createCourse(@CurrentUser() user: JwtPayload, @Body() dto: CreateCourseDto) {
     return this.teacherService.createCourse(user.sub, dto);
   }
 
   @Get('courses')
-  getCourses(@CurrentUser() user: any) {
+  getCourses(@CurrentUser() user: JwtPayload) {
     return this.teacherService.getCourses(user.sub, user.role);
   }
 
   @Get('courses/:id')
-  getCourse(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  getCourse(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
     return this.teacherService.getCourse(id, user.sub, user.role);
   }
 
   @Patch('courses/:id')
   updateCourse(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateCourseDto,
   ) {
     return this.teacherService.updateCourse(id, user.sub, user.role, dto);
   }
 
   @Delete('courses/:id')
-  deleteCourse(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  deleteCourse(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
     return this.teacherService.deleteCourse(id, user.sub, user.role);
   }
 
@@ -62,7 +65,7 @@ export class TeacherController {
   @Post('courses/:courseId/modules')
   createModule(
     @Param('courseId', ParseIntPipe) courseId: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: CreateModuleDto,
   ) {
     return this.teacherService.createModule(courseId, user.sub, user.role, dto);
@@ -71,14 +74,17 @@ export class TeacherController {
   @Patch('modules/:id')
   updateModule(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateModuleDto,
   ) {
     return this.teacherService.updateModule(id, user.sub, user.role, dto);
   }
 
   @Delete('modules/:id')
-  deleteModule(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  deleteModule(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
     return this.teacherService.deleteModule(id, user.sub, user.role);
   }
 
@@ -86,7 +92,7 @@ export class TeacherController {
   @Post('modules/:moduleId/lessons')
   createLesson(
     @Param('moduleId', ParseIntPipe) moduleId: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: CreateLessonDto,
   ) {
     return this.teacherService.createLesson(moduleId, user.sub, user.role, dto);
@@ -95,14 +101,17 @@ export class TeacherController {
   @Patch('lessons/:id')
   updateLesson(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateLessonDto,
   ) {
     return this.teacherService.updateLesson(id, user.sub, user.role, dto);
   }
 
   @Delete('lessons/:id')
-  deleteLesson(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  deleteLesson(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
     return this.teacherService.deleteLesson(id, user.sub, user.role);
   }
 
@@ -110,7 +119,7 @@ export class TeacherController {
   @Post('modules/:moduleId/quizzes')
   createQuiz(
     @Param('moduleId', ParseIntPipe) moduleId: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: CreateQuizDto,
   ) {
     return this.teacherService.createQuiz(moduleId, user.sub, user.role, dto);
@@ -119,14 +128,14 @@ export class TeacherController {
   @Patch('quizzes/:id')
   updateQuiz(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateQuizDto,
   ) {
     return this.teacherService.updateQuiz(id, user.sub, user.role, dto);
   }
 
   @Delete('quizzes/:id')
-  deleteQuiz(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  deleteQuiz(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
     return this.teacherService.deleteQuiz(id, user.sub, user.role);
   }
 }

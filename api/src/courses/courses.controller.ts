@@ -13,7 +13,7 @@ import { CoursesService } from './courses.service';
 import { GetCoursesQueryDto } from './dto/get-courses-query.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
 import { Public } from '../auth/decorators/public.decorator';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentUser, JwtPayload } from '../auth/decorators/current-user.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
@@ -32,7 +32,7 @@ export class CoursesController {
   }
 
   @Get('enrolled')
-  getEnrolled(@CurrentUser() user: any) {
+  getEnrolled(@CurrentUser() user: JwtPayload) {
     return this.coursesService.getEnrolledCourses(user.sub);
   }
 
@@ -58,19 +58,19 @@ export class CoursesController {
   }
 
   @Post(':id/enroll')
-  enroll(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  enroll(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
     return this.coursesService.enroll(id, user.sub);
   }
 
   @Post(':id/unenroll')
-  unenroll(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
+  unenroll(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
     return this.coursesService.unenroll(id, user.sub);
   }
 
   @Post('quizzes/:quizId/submit')
   submitQuiz(
     @Param('quizId', ParseIntPipe) quizId: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: SubmitQuizDto,
   ) {
     return this.coursesService.submitQuiz(quizId, user.sub, dto);
@@ -79,9 +79,13 @@ export class CoursesController {
   @Post('lessons/:lessonId/progress')
   toggleLessonProgress(
     @Param('lessonId', ParseIntPipe) lessonId: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: JwtPayload,
     @Body('isCompleted') isCompleted: boolean,
   ) {
-    return this.coursesService.toggleLessonProgress(lessonId, user.sub, isCompleted);
+    return this.coursesService.toggleLessonProgress(
+      lessonId,
+      user.sub,
+      isCompleted,
+    );
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -14,7 +18,11 @@ import { slugify } from '../common/utils/slugify';
 export class TeacherService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async checkCourseAccess(courseId: number, userId: number, role: string) {
+  private async checkCourseAccess(
+    courseId: number,
+    userId: number,
+    role: string,
+  ) {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
     });
@@ -31,12 +39,14 @@ export class TeacherService {
   }
 
   async createCourse(authorId: number, dto: CreateCourseDto) {
-    let slug = slugify(dto.title);
-    
+    const slug = slugify(dto.title);
+
     // Ensure unique slug
     let uniqueSlug = slug;
     let counter = 1;
-    while (await this.prisma.course.findFirst({ where: { slug: uniqueSlug } })) {
+    while (
+      await this.prisma.course.findFirst({ where: { slug: uniqueSlug } })
+    ) {
       uniqueSlug = `${slug}-${counter}`;
       counter++;
     }
@@ -95,16 +105,21 @@ export class TeacherService {
     });
   }
 
-  async updateCourse(courseId: number, userId: number, role: string, dto: UpdateCourseDto) {
+  async updateCourse(
+    courseId: number,
+    userId: number,
+    role: string,
+    dto: UpdateCourseDto,
+  ) {
     await this.checkCourseAccess(courseId, userId, role);
 
     const updateData: any = { ...dto };
 
     if (dto.title) {
-      let slug = slugify(dto.title);
+      const slug = slugify(dto.title);
       let uniqueSlug = slug;
       let counter = 1;
-      
+
       // Ensure unique slug (excluding current course)
       while (
         await this.prisma.course.findFirst({
@@ -135,7 +150,12 @@ export class TeacherService {
   }
 
   // Modules
-  async createModule(courseId: number, userId: number, role: string, dto: CreateModuleDto) {
+  async createModule(
+    courseId: number,
+    userId: number,
+    role: string,
+    dto: CreateModuleDto,
+  ) {
     await this.checkCourseAccess(courseId, userId, role);
 
     return this.prisma.module.create({
@@ -146,7 +166,12 @@ export class TeacherService {
     });
   }
 
-  async updateModule(moduleId: number, userId: number, role: string, dto: UpdateModuleDto) {
+  async updateModule(
+    moduleId: number,
+    userId: number,
+    role: string,
+    dto: UpdateModuleDto,
+  ) {
     const module = await this.prisma.module.findUnique({
       where: { id: moduleId },
     });
@@ -180,7 +205,12 @@ export class TeacherService {
   }
 
   // Lessons
-  async createLesson(moduleId: number, userId: number, role: string, dto: CreateLessonDto) {
+  async createLesson(
+    moduleId: number,
+    userId: number,
+    role: string,
+    dto: CreateLessonDto,
+  ) {
     const module = await this.prisma.module.findUnique({
       where: { id: moduleId },
     });
@@ -199,7 +229,12 @@ export class TeacherService {
     });
   }
 
-  async updateLesson(lessonId: number, userId: number, role: string, dto: UpdateLessonDto) {
+  async updateLesson(
+    lessonId: number,
+    userId: number,
+    role: string,
+    dto: UpdateLessonDto,
+  ) {
     const lesson = await this.prisma.lesson.findUnique({
       where: { id: lessonId },
       include: { module: true },
@@ -235,7 +270,12 @@ export class TeacherService {
   }
 
   // Quizzes
-  async createQuiz(moduleId: number, userId: number, role: string, dto: CreateQuizDto) {
+  async createQuiz(
+    moduleId: number,
+    userId: number,
+    role: string,
+    dto: CreateQuizDto,
+  ) {
     const module = await this.prisma.module.findUnique({
       where: { id: moduleId },
     });
@@ -291,7 +331,12 @@ export class TeacherService {
     });
   }
 
-  async updateQuiz(quizId: number, userId: number, role: string, dto: UpdateQuizDto) {
+  async updateQuiz(
+    quizId: number,
+    userId: number,
+    role: string,
+    dto: UpdateQuizDto,
+  ) {
     const quiz = await this.prisma.quiz.findUnique({
       where: { id: quizId },
       include: { module: true },
