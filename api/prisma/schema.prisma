@@ -18,14 +18,18 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  role      Role     @default(STUDENT)
-  posts     Post[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int              @id @default(autoincrement())
+  email       String           @unique
+  password    String
+  name        String?
+  role        Role             @default(STUDENT)
+  posts       Post[]
+  courses     Course[]
+  enrollments Enrollment[]
+  progress    Progress[]
+  quizResults UserQuizResult[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }
 
 model Category {
@@ -57,4 +61,110 @@ model Post {
   tags       Tag[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+}
+
+model Course {
+  id          Int          @id @default(autoincrement())
+  title       String
+  slug        String       @unique
+  description String?
+  imageUrl    String?
+  published   Boolean      @default(false)
+  authorId    Int
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  modules     Module[]
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Module {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  order       Int
+  courseId    Int
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+  quizzes     Quiz[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Lesson {
+  id          Int        @id @default(autoincrement())
+  title       String
+  content     String
+  order       Int
+  videoUrl    String?
+  moduleId    Int
+  module      Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progressions Progress[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model Progress {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    Int
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isCompleted Boolean  @default(true)
+  completedAt DateTime @default(now())
+
+  @@unique([userId, lessonId])
+}
+
+model Quiz {
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String?
+  order       Int
+  moduleId    Int
+  module      Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  quizResults UserQuizResult[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Question {
+  id        Int              @id @default(autoincrement())
+  text      String
+  order     Int
+  quizId    Int
+  quiz      Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options   QuestionOption[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model QuestionOption {
+  id         Int      @id @default(autoincrement())
+  text       String
+  isCorrect  Boolean  @default(false)
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model UserQuizResult {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId      Int
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score       Float
+  completedAt DateTime @default(now())
 }
