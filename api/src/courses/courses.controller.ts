@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Body,
   Param,
   Query,
   UseGuards,
@@ -73,5 +74,14 @@ export class CoursesController {
     @Body() dto: SubmitQuizDto,
   ) {
     return this.coursesService.submitQuiz(quizId, user.sub, dto);
+  }
+
+  @Post('lessons/:lessonId/progress')
+  toggleLessonProgress(
+    @Param('lessonId', ParseIntPipe) lessonId: number,
+    @CurrentUser() user: any,
+    @Body('isCompleted') isCompleted: boolean,
+  ) {
+    return this.coursesService.toggleLessonProgress(lessonId, user.sub, isCompleted);
   }
 }

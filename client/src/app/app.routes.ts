@@ -31,8 +31,21 @@ export const routes: Routes = [
     loadComponent: () => import('./features/blog/post-detail/post-detail').then((m) => m.PostDetail),
   },
   {
+    path: 'courses',
+    loadComponent: () => import('./features/lms/course-list/course-list').then((m) => m.CourseList),
+  },
+  {
+    path: 'courses/:slug',
+    loadComponent: () => import('./features/lms/course-detail/course-detail').then((m) => m.CourseDetail),
+  },
+  {
+    path: 'courses/:slug/learn',
+    loadComponent: () => import('./features/lms/course-learn/course-learn').then((m) => m.CourseLearn),
+    canActivate: [authGuard],
+  },
+  {
     path: '',
-    redirectTo: 'blog',
+    redirectTo: 'courses',
     pathMatch: 'full',
   },
 ];

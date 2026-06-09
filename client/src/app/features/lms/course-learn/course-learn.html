@@ -1,0 +1,251 @@
+<div class="learn-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Загрузка материалов курса...</p>
+    </div>
+  } @else {
+    @if (course(); as c) {
+      <div class="learn-layout">
+        <!-- Sidebar: Curriculum -->
+        <aside class="learn-sidebar glassmorphism">
+          <div class="sidebar-header">
+            <button mat-icon-button [routerLink]="['/courses', c.slug]" class="back-btn" title="Вернуться к курсу">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div class="course-info">
+              <h3>{{ c.title }}</h3>
+            </div>
+          </div>
+
+          <mat-divider class="divider"></mat-divider>
+
+          <div class="syllabus-nav">
+            @for (module of c.modules; track module.id) {
+              <div class="module-group">
+                <div class="module-header-nav">
+                  <mat-icon class="folder-icon">folder_open</mat-icon>
+                  <span>{{ module.title }}</span>
+                </div>
+
+                <div class="items-list">
+                  <!-- Lessons -->
+                  @for (lesson of module.lessons; track lesson.id) {
+                    <button 
+                      class="nav-item-btn" 
+                      [class.active]="selectedLesson()?.id === lesson.id" 
+                      (click)="selectLesson(lesson)"
+                    >
+                      <mat-icon class="status-icon" [class.completed]="lesson.isCompleted">
+                        {{ lesson.isCompleted ? 'check_circle' : 'play_circle_outline' }}
+                      </mat-icon>
+                      <span class="title-text">{{ lesson.title }}</span>
+                    </button>
+                  }
+
+                  <!-- Quizzes -->
+                  @if (module.quizzes && module.quizzes.length > 0) {
+                    @for (quiz of module.quizzes; track quiz.id) {
+                      <button 
+                        class="nav-item-btn quiz-item-btn" 
+                        [class.active]="selectedQuiz()?.id === quiz.id" 
+                        [class.completed]="quiz.isCompleted"
+                        (click)="selectQuiz(quiz)"
+                      >
+                        <mat-icon class="status-icon quiz-status-icon">
+                          {{ quiz.isCompleted ? 'assignment_turned_in' : 'assignment' }}
+                        </mat-icon>
+                        <span class="title-text">Тест: {{ quiz.title }}</span>
+                        @if (quiz.bestScore !== null) {
+                          <span class="best-score-badge">{{ quiz.bestScore }}%</span>
+                        }
+                      </button>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </aside>
+
+        <!-- Main Content Area: Workspace -->
+        <main class="learn-workspace glassmorphism">
+          <!-- Lesson view -->
+          @if (selectedLesson(); as lesson) {
+            <div class="workspace-header">
+              <span class="breadcrumbs">Урок • {{ lesson.title }}</span>
+              <h1>{{ lesson.title }}</h1>
+            </div>
+
+            <mat-divider class="workspace-divider"></mat-divider>
+
+            <div class="workspace-body">
+              <!-- Video section -->
+              @if (lesson.videoUrl) {
+                <div class="video-container glassmorphism">
+                  <iframe 
+                    [src]="lesson.videoUrl | safeUrl" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                    class="video-iframe"
+                  ></iframe>
+                </div>
+              }
+
+              <!-- Lesson Content -->
+              <div class="lesson-html-content">
+                @if (lesson.content) {
+                  <div [innerHTML]="lesson.content | markdown" class="markdown-content"></div>
+                } @else {
+                  <p class="no-content-p">У этого урока нет текстовых материалов.</p>
+                }
+              </div>
+            </div>
+
+            <mat-divider class="workspace-divider"></mat-divider>
+
+            <div class="workspace-footer">
+              <button 
+                mat-flat-button 
+                [color]="lesson.isCompleted ? 'warn' : 'accent'" 
+                class="complete-btn" 
+                (click)="toggleLessonProgress()"
+              >
+                <mat-icon>{{ lesson.isCompleted ? 'unpublished' : 'check_circle' }}</mat-icon>
+                {{ lesson.isCompleted ? 'Снять отметку о прохождении' : 'Отметить как пройденный' }}
+              </button>
+            </div>
+          }
+
+          <!-- Quiz view -->
+          @if (selectedQuiz(); as quiz) {
+            <div class="workspace-header">
+              <span class="breadcrumbs">Тест • {{ quiz.title }}</span>
+              <h1>{{ quiz.title }}</h1>
+              @if (quiz.description) {
+                <p class="quiz-desc-text">{{ quiz.description }}</p>
+              }
+            </div>
+
+            <mat-divider class="workspace-divider"></mat-divider>
+
+            <div class="workspace-body">
+              @if (!quizResult()) {
+                <!-- Quiz Form (Taking Quiz) -->
+                <div class="quiz-taking-form">
+                  @if (quiz.questions && quiz.questions.length > 0) {
+                    @for (question of quiz.questions; track question.id; let qIdx = $index) {
+                      <div class="quiz-question-card glassmorphism">
+                        <div class="question-header">
+                          <span class="question-num">Вопрос {{ qIdx + 1 }}</span>
+                          <h3>{{ question.text }}</h3>
+                        </div>
+
+                        <div class="question-options">
+                          <!-- For each option -->
+                          @for (option of question.options; track option.id) {
+                            <div class="option-row">
+                              <mat-checkbox 
+                                [checked]="isOptionSelected(question.id, option.id)" 
+                                (change)="onMultiChoiceChange(question.id, option.id, $event.checked)"
+                                class="option-checkbox"
+                              >
+                                {{ option.text }}
+                              </mat-checkbox>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <div class="quiz-submission-box">
+                      <button 
+                        mat-flat-button 
+                        color="primary" 
+                        class="submit-quiz-btn"
+                        [disabled]="isSubmittingQuiz()"
+                        (click)="submitQuiz()"
+                      >
+                        <mat-icon>send</mat-icon>
+                        {{ isSubmittingQuiz() ? 'Отправка...' : 'Отправить ответы на проверку' }}
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="empty-quiz-state">
+                      <mat-icon>sentiment_dissatisfied</mat-icon>
+                      <p>В этом тесте пока нет вопросов.</p>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <!-- Quiz Results (Review) -->
+                @if (quizResult(); as result) {
+                  <div class="quiz-results-container">
+                    <div class="result-summary-card glassmorphism" [class.passed]="result.score >= 60" [class.failed]="result.score < 60">
+                      <mat-icon class="result-summary-icon">
+                        {{ result.score >= 60 ? 'emoji_events' : 'sentiment_very_dissatisfied' }}
+                      </mat-icon>
+                      <h2>Ваш результат: {{ result.score }}%</h2>
+                      <p>
+                        Вы правильно ответили на <strong>{{ result.correctCount }}</strong> из <strong>{{ result.totalQuestions }}</strong> вопросов.
+                      </p>
+                      <button mat-stroked-button color="primary" class="retake-btn" (click)="retakeQuiz()">
+                        <mat-icon>replay</mat-icon> Пройти тест заново
+                      </button>
+                    </div>
+
+                    <h2>Подробный разбор результатов</h2>
+                    <div class="results-review-list">
+                      @for (qResult of result.details; track qResult.questionId; let qIdx = $index) {
+                        <div class="question-review-card glassmorphism" [class.correct]="qResult.isCorrect" [class.incorrect]="!qResult.isCorrect">
+                          <div class="review-question-header">
+                            <span class="question-num">Вопрос {{ qIdx + 1 }}</span>
+                            <span class="result-badge" [class.correct]="qResult.isCorrect">
+                              {{ qResult.isCorrect ? 'Правильно' : 'Неправильно' }}
+                            </span>
+                            <h3>{{ qResult.text }}</h3>
+                          </div>
+
+                          <div class="review-options">
+                            @for (opt of qResult.options; track opt.id) {
+                              <div 
+                                class="review-option-row" 
+                                [class.correct-option]="qResult.correctOptionIds.includes(opt.id)"
+                                [class.selected-wrong]="qResult.selectedOptionIds.includes(opt.id) && !qResult.correctOptionIds.includes(opt.id)"
+                                [class.selected-correct]="qResult.selectedOptionIds.includes(opt.id) && qResult.correctOptionIds.includes(opt.id)"
+                              >
+                                <mat-icon class="option-icon">
+                                  @if (qResult.correctOptionIds.includes(opt.id)) {
+                                    check_circle
+                                  } @else if (qResult.selectedOptionIds.includes(opt.id)) {
+                                    cancel
+                                  } @else {
+                                    radio_button_unchecked
+                                  }
+                                </mat-icon>
+                                
+                                <span class="option-text">{{ opt.text }}</span>
+
+                                @if (qResult.correctOptionIds.includes(opt.id)) {
+                                  <span class="badge correct-badge">Правильный ответ</span>
+                                }
+                                @if (qResult.selectedOptionIds.includes(opt.id)) {
+                                  <span class="badge selected-badge">Ваш выбор</span>
+                                }
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </main>
+      </div>
+    }
+  }
+</div>

@@ -77,6 +77,23 @@ export class CoursesService {
             lessons: {
               orderBy: { order: 'asc' },
             },
+            quizzes: {
+              orderBy: { order: 'asc' },
+              include: {
+                questions: {
+                  orderBy: { order: 'asc' },
+                  include: {
+                    options: {
+                      select: {
+                        id: true,
+                        text: true,
+                        questionId: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -115,6 +132,9 @@ export class CoursesService {
 
     // Fetch progress if has access
     const progressMap = new Map<number, boolean>();
+    const quizResultsMap = new Map<number, number>();
+    const quizCompletedMap = new Map<number, boolean>();
+
     if (userId && isEnrolled) {
       const progresses = await this.prisma.progress.findMany({
         where: {
@@ -129,9 +149,31 @@ export class CoursesService {
       for (const p of progresses) {
         progressMap.set(p.lessonId, p.isCompleted);
       }
+
+      // Fetch user quiz results
+      const quizResults = await this.prisma.userQuizResult.findMany({
+        where: {
+          userId,
+          quiz: {
+            module: {
+              courseId: course.id,
+            },
+          },
+        },
+        orderBy: {
+          completedAt: 'desc',
+        },
+      });
+      for (const qr of quizResults) {
+        quizCompletedMap.set(qr.quizId, true);
+        const currentBest = quizResultsMap.get(qr.quizId) || 0;
+        if (qr.score > currentBest) {
+          quizResultsMap.set(qr.quizId, qr.score);
+        }
+      }
     }
 
-    // Format modules & lessons based on access rights
+    // Format modules, lessons & quizzes based on access rights
     const formattedModules = course.modules.map((module) => {
       const formattedLessons = module.lessons.map((lesson) => {
         const { content, videoUrl, ...lessonMeta } = lesson;
@@ -144,9 +186,18 @@ export class CoursesService {
         };
       });
 
+      const formattedQuizzes = module.quizzes.map((quiz) => {
+        return {
+          ...quiz,
+          isCompleted: quizCompletedMap.has(quiz.id),
+          bestScore: quizResultsMap.get(quiz.id) !== undefined ? quizResultsMap.get(quiz.id) : null,
+        };
+      });
+
       return {
         ...module,
         lessons: formattedLessons,
+        quizzes: formattedQuizzes,
       };
     });
 
@@ -347,5 +398,53 @@ export class CoursesService {
       completedAt: result.completedAt,
       details,
     };
+  }
+
+  async toggleLessonProgress(lessonId: number, userId: number, isCompleted: boolean) {
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id: lessonId },
+      include: {
+        module: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Урок не найден');
+    }
+
+    // Check enrollment
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId,
+          courseId: lesson.module.courseId,
+        },
+      },
+    });
+
+    if (!enrollment) {
+      throw new ForbiddenException('Вы не записаны на этот курс');
+    }
+
+    return this.prisma.progress.upsert({
+      where: {
+        userId_lessonId: {
+          userId,
+          lessonId,
+        },
+      },
+      create: {
+        userId,
+        lessonId,
+        isCompleted,
+      },
+      update: {
+        isCompleted,
+      },
+    });
   }
 }

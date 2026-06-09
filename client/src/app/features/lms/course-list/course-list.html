@@ -1,0 +1,110 @@
+<div class="courses-container">
+  <!-- Header & Search -->
+  <div class="courses-header glassmorphism">
+    <div class="header-info">
+      <h1>Каталог онлайн-курсов</h1>
+      <p>Освойте новые навыки с нашими интерактивными программами обучения</p>
+    </div>
+
+    <div class="search-box">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Поиск курса...</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Введите название или описание" />
+        <mat-icon matPrefix>search</mat-icon>
+        @if (searchQuery()) {
+          <button mat-icon-button matSuffix (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <button mat-flat-button color="primary" class="search-btn" (click)="onSearch()">
+        <mat-icon>search</mat-icon> Найти
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Загрузка каталога курсов...</p>
+    </div>
+  } @else {
+    <!-- Courses Grid -->
+    @if (courses().length > 0) {
+      <div class="courses-grid">
+        @for (course of courses(); track course.id) {
+          <mat-card class="course-card glassmorphism" [routerLink]="['/courses', course.slug]">
+            <!-- Cover image wrapper -->
+            <div class="card-cover-wrapper">
+              @if (course.imageUrl) {
+                <img [src]="course.imageUrl" [alt]="course.title" class="card-cover-image" />
+              } @else {
+                <div class="card-cover-fallback">
+                  <mat-icon class="fallback-icon">import_contacts</mat-icon>
+                </div>
+              }
+              @if (isEnrolled(course.id)) {
+                <div class="enrolled-badge glassmorphism">
+                  <mat-icon>check_circle</mat-icon> Вы записаны
+                </div>
+              }
+            </div>
+
+            <!-- Content -->
+            <mat-card-content class="card-content">
+              <h2 class="course-title">{{ course.title }}</h2>
+              <p class="course-desc">
+                {{ course.description || 'Нет описания курса.' }}
+              </p>
+              
+              <div class="course-meta">
+                <span class="meta-item">
+                  <mat-icon>view_module</mat-icon>
+                  {{ course._count?.modules || 0 }} модулей
+                </span>
+                <span class="meta-item">
+                  <mat-icon>people</mat-icon>
+                  {{ course._count?.enrollments || 0 }} студентов
+                </span>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions class="card-actions">
+              <span class="author-name">Автор: {{ course.author.name || course.author.email }}</span>
+              <button mat-stroked-button class="action-btn" [color]="isEnrolled(course.id) ? 'accent' : 'primary'">
+                {{ isEnrolled(course.id) ? 'Продолжить' : 'Подробнее' }}
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination glassmorphism">
+          <button mat-icon-button [disabled]="currentPage() === 1" (click)="onPageChange(currentPage() - 1)">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          
+          <span class="page-info">Страница {{ currentPage() }} из {{ totalPages() }}</span>
+          
+          <button mat-icon-button [disabled]="currentPage() === totalPages()" (click)="onPageChange(currentPage() + 1)">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      }
+    } @else {
+      <!-- Empty State -->
+      <div class="empty-state glassmorphism">
+        <mat-icon class="empty-icon">search_off</mat-icon>
+        <h3>Курсы не найдены</h3>
+        <p>Попробуйте изменить поисковый запрос или загляните позже.</p>
+        @if (searchQuery()) {
+          <button mat-flat-button color="accent" (click)="clearSearch()">Сбросить поиск</button>
+        }
+      </div>
+    }
+  }
+</div>

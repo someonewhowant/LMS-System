@@ -1,0 +1,186 @@
+<div class="detail-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Загрузка деталей курса...</p>
+    </div>
+  } @else {
+    @if (course(); as c) {
+      <div class="course-layout">
+        <!-- Main details -->
+        <div class="main-column">
+          <!-- Course Hero -->
+          <div class="course-hero glassmorphism">
+            <div class="hero-image-wrapper">
+              @if (c.imageUrl) {
+                <img [src]="c.imageUrl" [alt]="c.title" class="hero-image" />
+              } @else {
+                <div class="hero-image-fallback">
+                  <mat-icon class="fallback-icon">import_contacts</mat-icon>
+                </div>
+              }
+            </div>
+            
+            <div class="hero-content">
+              <span class="author-label">Автор курса: <strong>{{ c.author.name || c.author.email }}</strong></span>
+              <h1>{{ c.title }}</h1>
+              <p class="course-description">{{ c.description || 'Описание курса еще не заполнено.' }}</p>
+            </div>
+          </div>
+
+          <!-- Syllabus / Accordion -->
+          <div class="syllabus-section glassmorphism">
+            <h2>Программа курса</h2>
+            
+            @if (c.modules && c.modules.length > 0) {
+              <mat-accordion class="modules-accordion" multi>
+                @for (module of c.modules; track module.id) {
+                  <mat-expansion-panel class="module-panel glassmorphism" expanded="true">
+                    <mat-expansion-panel-header class="module-header">
+                      <mat-panel-title class="module-title">
+                        <mat-icon class="module-icon">folder</mat-icon>
+                        {{ module.title }}
+                      </mat-panel-title>
+                      <mat-panel-description class="module-desc">
+                        {{ module.lessons.length }} уроков
+                      </mat-panel-description>
+                    </mat-expansion-panel-header>
+
+                    <div class="lessons-list">
+                      @for (lesson of module.lessons; track lesson.id) {
+                        <div class="lesson-row" [class.completed]="lesson.isCompleted">
+                          <mat-icon class="lesson-icon">
+                            @if (lesson.isCompleted) {
+                              check_circle
+                            } @else if (c.isEnrolled) {
+                              play_circle_outline
+                            } @else {
+                              lock
+                            }
+                          </mat-icon>
+                          
+                          @if (c.isEnrolled) {
+                            <a [routerLink]="['/courses', c.slug, 'learn']" [queryParams]="{ lessonId: lesson.id }" class="lesson-title enrolled">
+                              {{ lesson.title }}
+                            </a>
+                          } @else {
+                            <span class="lesson-title locked">
+                              {{ lesson.title }}
+                            </span>
+                          }
+                          
+                          <div class="spacer"></div>
+                          @if (lesson.isCompleted) {
+                            <span class="completed-text">Завершен</span>
+                          } @else if (!c.isEnrolled) {
+                            <mat-icon class="lock-indicator">lock_outline</mat-icon>
+                          }
+                        </div>
+                      }
+
+                      <!-- Quizzes -->
+                      @if (module.quizzes && module.quizzes.length > 0) {
+                        @for (quiz of module.quizzes; track quiz.id) {
+                          <div class="lesson-row quiz-row" [class.completed]="quiz.isCompleted">
+                            <mat-icon class="lesson-icon quiz-icon">
+                              @if (quiz.isCompleted) {
+                                assignment_turned_in
+                              } @else if (c.isEnrolled) {
+                                assignment
+                              } @else {
+                                lock
+                              }
+                            </mat-icon>
+                            
+                            @if (c.isEnrolled) {
+                              <a [routerLink]="['/courses', c.slug, 'learn']" [queryParams]="{ quizId: quiz.id }" class="lesson-title enrolled">
+                                Тест: {{ quiz.title }}
+                              </a>
+                            } @else {
+                              <span class="lesson-title locked">
+                                Тест: {{ quiz.title }}
+                              </span>
+                            }
+                            
+                            <div class="spacer"></div>
+                            @if (quiz.bestScore !== null) {
+                              <span class="completed-text score-text">Лучший результат: {{ quiz.bestScore }}%</span>
+                            } @else if (!c.isEnrolled) {
+                              <mat-icon class="lock-indicator">lock_outline</mat-icon>
+                            }
+                          </div>
+                        }
+                      }
+                    </div>
+                  </mat-expansion-panel>
+                }
+              </mat-accordion>
+            } @else {
+              <div class="empty-syllabus">
+                <mat-icon>hourglass_empty</mat-icon>
+                <p>Программа курса пока пуста. Загляните позже!</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Sidebar / Action Card -->
+        <div class="sidebar-column">
+          <div class="action-card glassmorphism">
+            <h3>Обучение</h3>
+            <mat-divider class="divider"></mat-divider>
+            
+            @if (c.isEnrolled) {
+              <!-- Enrolled progress -->
+              <div class="progress-box">
+                <div class="progress-info">
+                  <span>Ваш прогресс:</span>
+                  <strong>{{ getProgressPercentage() }}%</strong>
+                </div>
+                <div class="progress-bar-container">
+                  <div class="progress-bar" [style.width.%]="getProgressPercentage()"></div>
+                </div>
+                <span class="lessons-stat">
+                  Выполнено {{ getCompletedLessonsCount() }} из {{ getTotalLessonsCount() }} уроков
+                </span>
+              </div>
+
+              <button mat-flat-button color="accent" class="action-btn" [routerLink]="['/courses', c.slug, 'learn']">
+                <mat-icon class="btn-icon">school</mat-icon>
+                {{ getCompletedLessonsCount() > 0 ? 'Продолжить обучение' : 'Начать обучение' }}
+              </button>
+
+              <button mat-stroked-button color="warn" class="action-btn secondary-btn" (click)="unenroll()" [disabled]="isEnrolling()">
+                <mat-icon class="btn-icon">cancel</mat-icon> Отказаться от курса
+              </button>
+            } @else {
+              <!-- Non-enrolled prompt -->
+              <p class="enroll-prompt-text">
+                Запишитесь на курс, чтобы получить неограниченный доступ ко всем лекциям, практическим заданиям и тестам.
+              </p>
+
+              <button mat-flat-button color="primary" class="action-btn" (click)="enroll()" [disabled]="isEnrolling()">
+                <mat-icon class="btn-icon">login</mat-icon> Записаться на курс
+              </button>
+            }
+
+            <div class="course-features">
+              <div class="feature-item">
+                <mat-icon>schedule</mat-icon>
+                <span>Свободный график обучения</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon>workspace_premium</mat-icon>
+                <span>Сертификат о прохождении</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon>support_agent</mat-icon>
+                <span>Поддержка преподавателя</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>
